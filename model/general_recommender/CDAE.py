@@ -22,7 +22,7 @@ class CDAE(AbstractRecommender):
         self.reg = config["reg"]
         self.dropout = config["dropout"]
         self.loss_func = config["loss_func"]
-
+        
         self.num_neg = config["num_neg"]
         self.epochs = config["epochs"]
         self.batch_size = config["batch_size"]

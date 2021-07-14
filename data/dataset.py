@@ -52,9 +52,12 @@ class Dataset(object):
             rating_file = ori_prefix + ".rating"
             ori_file_md5 = [check_md5(rating_file)]
         elif splitter == "given":
-            train_file = ori_prefix + ".train"
-            test_file = ori_prefix + ".test"
-            ori_file_md5 = [check_md5(file) for file in [train_file, test_file]]
+            return True
+            # train_file = ori_prefix + ".train"
+            # test_file = ori_prefix + ".test"
+            # train_file = ori_prefix + "/train_df_{}.csv".format(config["data.fold"])
+            # test_file = ori_prefix + "/test_df_{}.csv".format(config["data.fold"])
+            # ori_file_md5 = [check_md5(file) for file in [train_file, test_file]]
         else:
             raise ValueError("'%s' is an invalid splitter!" % splitter)
 
@@ -86,21 +89,26 @@ class Dataset(object):
         splitter = config["splitter"]
         sep = config["data.convert.separator"]
         columns = format_dict[file_format]
-        train_file = saved_prefix + ".train"
-        test_file = saved_prefix + ".test"
-        user_map_file = saved_prefix + ".user2id"
-        item_map_file = saved_prefix + ".item2id"
+        # train_file = saved_prefix + ".train"
+        # test_file = saved_prefix + ".test"
+        train_file = ori_prefix + "/train_df_{}.csv".format(config["data.fold"])
+        test_file = ori_prefix + "/test_df_{}.csv".format(config["data.fold"])
+        # user_map_file = saved_prefix + ".user2id"
+        # item_map_file = saved_prefix + ".item2id"
 
         if self._check_saved_data(splitter, ori_prefix, saved_prefix):
             print("load saved data...")
             # load saved data
-            train_data = pd.read_csv(train_file, sep=sep, header=None, names=columns)
-            test_data = pd.read_csv(test_file, sep=sep, header=None, names=columns)
+            # train_data = pd.read_csv(train_file, sep=sep, header=None, names=columns)
+            # test_data = pd.read_csv(test_file, sep=sep, header=None, names=columns)
 
-            user_map = pd.read_csv(user_map_file, sep=sep, header=None, names=["user", "id"])
-            item_map = pd.read_csv(item_map_file, sep=sep, header=None, names=["item", "id"])
-            self.userids = {user: uid for user, uid in zip(user_map["user"], user_map["id"])}
-            self.itemids = {item: iid for item, iid in zip(item_map["item"], item_map["id"])}
+            train_data = pd.read_csv(train_file)
+            test_data = pd.read_csv(test_file)
+
+            # user_map = pd.read_csv(user_map_file, sep=sep, header=None, names=["user", "id"])
+            # item_map = pd.read_csv(item_map_file, sep=sep, header=None, names=["item", "id"])
+            # self.userids = {user: uid for user, uid in zip(user_map["user"], user_map["id"])}
+            # self.itemids = {item: iid for item, iid in zip(item_map["item"], item_map["id"])}
         else:  # split and save data
             print("split and save data...")
             by_time = config["by_time"] if file_format in {"UIRT", "UIT"} else False
@@ -111,7 +119,14 @@ class Dataset(object):
         self.num_items = max(all_data["item"]) + 1
         self.num_ratings = len(all_data)
 
-        if file_format in {"UI", "UIT"}:
+        # if file_format in {"UI", "UIT"}:
+        #     train_ratings = [1.0] * len(train_data["user"])
+        #     test_ratings = [1.0] * len(test_data["user"])
+        # else:
+        #     train_ratings = train_data["rating"]
+        #     test_ratings = test_data["rating"]
+
+        if config["data.rating.format"] == "bin":
             train_ratings = [1.0] * len(train_data["user"])
             test_ratings = [1.0] * len(test_data["user"])
         else:
@@ -128,6 +143,8 @@ class Dataset(object):
                                           shape=(self.num_users, self.num_items))
 
         self.negative_matrix = self._load_test_neg_items(all_data, config, saved_prefix)
+
+        print(self.train_matrix.toarray(), self.test_matrix.toarray(), self.negative_matrix)
 
     def _split_data(self, ori_prefix, saved_prefix, columns, by_time, config):
         splitter = config["splitter"]

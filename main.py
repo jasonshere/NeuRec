@@ -5,6 +5,7 @@ import tensorflow as tf
 import importlib
 from data.dataset import Dataset
 from util import Configurator, tool
+import pandas as pd
 
 
 np.random.seed(2018)
@@ -43,3 +44,17 @@ if __name__ == "__main__":
         model.build_graph()
         sess.run(tf.global_variables_initializer())
         model.train_model()
+
+        # save predictions
+        users = np.arange(dataset.num_users)
+        predictions = model.predict(users)
+
+        d = conf["data.save.path"] + conf["data.input.dataset"] + "/fold-{}".format(conf["data.fold"])
+        os.makedirs(d, exist_ok=True)
+        pd.DataFrame(predictions).to_csv("{}/predictions.csv".format(d), index=False)
+        pd.DataFrame(dataset.train_matrix.toarray()).to_csv("{}/train.csv".format(d), index=False)
+        pd.DataFrame(dataset.test_matrix.toarray()).to_csv("{}/test.csv".format(d), index=False)
+
+
+
+
