@@ -47,9 +47,9 @@ if __name__ == "__main__":
 
         # save predictions
         users = np.arange(dataset.num_users)
-        predictions = model.predict(users)
+        predictions = model.predict(users, None)
 
-        d = conf["data.save.path"] + conf["data.input.dataset"] + "/fold-{}".format(conf["data.fold"])
+        d = conf["data.save.path"] + conf['recommender'] + '/' + conf["data.input.dataset"] + "/fold-{}".format(conf["data.fold"])
         os.makedirs(d, exist_ok=True)
         pd.DataFrame(predictions).to_csv("{}/predictions.csv".format(d), index=False)
         pd.DataFrame(dataset.train_matrix.toarray()).to_csv("{}/train.csv".format(d), index=False)
